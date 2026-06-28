@@ -15,6 +15,8 @@
     form: document.getElementById("entryForm"),
     name: document.getElementById("name"),
     categoryGrid: document.getElementById("categoryGrid"),
+    customCatField: document.getElementById("customCatField"),
+    customCat: document.getElementById("customCat"),
     file: document.getElementById("file"),
     fileDrop: document.getElementById("fileDrop"),
     fileDropText: document.getElementById("fileDropText"),
@@ -23,6 +25,7 @@
     overlay: document.getElementById("uploadOverlay"),
   };
 
+  const OVERIG = window.OVERIG_LABEL || "Overig (zelf gemaakte rubriek)";
   const selectedCategories = new Set();
 
   /* ---------- Deadline ---------- */
@@ -61,6 +64,7 @@
           card.classList.add("selected");
           card.setAttribute("aria-checked", "true");
         }
+        if (label === OVERIG) toggleCustomField();
         clearError("category");
       }
       card.addEventListener("click", toggle);
@@ -69,6 +73,17 @@
       });
       els.categoryGrid.appendChild(card);
     });
+  }
+
+  function toggleCustomField() {
+    const show = selectedCategories.has(OVERIG);
+    els.customCatField.hidden = !show;
+    if (!show) {
+      els.customCat.value = "";
+      clearError("customCat");
+    } else {
+      els.customCat.focus();
+    }
   }
 
   /* ---------- Bestand-keuze ---------- */
@@ -118,6 +133,10 @@
       setError("category", "Kies minstens één rubriek."); ok = false;
     }
 
+    if (selectedCategories.has(OVERIG) && !els.customCat.value.trim()) {
+      setError("customCat", "Vul de naam van je eigen rubriek in."); ok = false;
+    }
+
     const file = els.file.files[0];
     if (!file) { setError("file", "Kies een Word-bestand om te uploaden."); ok = false; }
     else {
@@ -145,7 +164,14 @@
 
     const fd = new FormData();
     fd.append("name", els.name.value.trim());
-    selectedCategories.forEach((cat) => fd.append("category", cat));
+    selectedCategories.forEach((cat) => {
+      // Vervang het generieke "Overig" door de zelf ingevulde rubrieknaam
+      if (cat === OVERIG) {
+        fd.append("category", "Overig: " + els.customCat.value.trim());
+      } else {
+        fd.append("category", cat);
+      }
+    });
     fd.append("file", els.file.files[0]);
 
     setLoading(true);
@@ -167,6 +193,7 @@
         c.classList.remove("selected");
         c.setAttribute("aria-checked", "false");
       });
+      els.customCatField.hidden = true;
       updateFileLabel(null);
       showStatus("success", "Gelukt! 🎉 Je bijdrage is ontvangen. Dankjewel! " +
         "Wil je nog een stukje insturen? Vul het formulier gerust nog een keer in.");
@@ -229,6 +256,7 @@
     wireFileInput();
     els.form.addEventListener("submit", handleSubmit);
     els.name.addEventListener("input", () => clearError("name"));
+    els.customCat.addEventListener("input", () => clearError("customCat"));
   }
 
   init();

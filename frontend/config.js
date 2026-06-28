@@ -38,4 +38,9 @@ window.CATEGORIES = [
   "ABC van hun relatie",
   'Breaking news artikel ("HET KOPPEL GAAT TROUWEN")',
   "Mythes versus feiten",
+  "Overig (zelf gemaakte rubriek)",
 ];
+
+// Label van de "Overig"-optie — bij aanvinken verschijnt een tekstveld
+// waarin de gast zijn eigen rubrieknaam kan invullen.
+window.OVERIG_LABEL = "Overig (zelf gemaakte rubriek)";
