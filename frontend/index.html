@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Huwelijkstijdschrift Jonathan &amp; Iris — Lever je bijdrage in</title>
+  <meta name="description" content="Lever je bijdrage in voor het huwelijkstijdschrift van Jonathan & Iris." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero__inner">
+        <p class="hero__eyebrow">Huwelijkstijdschrift</p>
+        <h1 class="hero__title">Jonathan &amp; Iris</h1>
+        <p class="hero__subtitle">Help mee aan een tijdschrift vol verhalen, herinneringen en
+          verrassingen. Kies een categorie en lever je bijdrage in.</p>
+        <div class="deadline-badge" id="deadlineBadge">
+          <span class="deadline-badge__icon">⏳</span>
+          <span id="deadlineText">Lever je bijdrage in vóór 16 juli</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Melding wanneer de deadline verstreken is -->
+      <section class="closed-card" id="closedCard" hidden>
+        <div class="closed-card__emoji">🌸</div>
+        <h2>De inzendtermijn is gesloten</h2>
+        <p>Heel erg bedankt voor alle bijdragen! De deadline voor het huwelijkstijdschrift
+          van Jonathan &amp; Iris is verstreken. Neem bij vragen contact op met de
+          ceremoniemeesters.</p>
+      </section>
+
+      <!-- Het inzendformulier -->
+      <section class="form-card" id="formCard">
+        <form id="entryForm" novalidate>
+          <div class="field">
+            <label for="name">Je naam <span class="req">*</span></label>
+            <input type="text" id="name" name="name" autocomplete="name"
+                   placeholder="Bijv. Anna de Vries" required />
+            <p class="field__error" data-error-for="name"></p>
+          </div>
+
+          <div class="field">
+            <label for="email">Je e-mailadres <span class="req">*</span></label>
+            <input type="email" id="email" name="email" autocomplete="email"
+                   placeholder="naam@voorbeeld.nl" required />
+            <p class="field__error" data-error-for="email"></p>
+          </div>
+
+          <div class="field">
+            <label>Kies een categorie <span class="req">*</span></label>
+            <p class="field__hint">Eén bijdrage per formulier. Wil je meerdere stukjes
+              insturen? Vul het formulier dan gewoon nog een keer in 💛</p>
+            <div class="category-grid" id="categoryGrid" role="radiogroup"
+                 aria-label="Categorie"></div>
+            <p class="field__error" data-error-for="category"></p>
+          </div>
+
+          <div class="field">
+            <label for="file">Upload je Word-bestand <span class="req">*</span></label>
+            <p class="field__hint">Alleen .doc of .docx — maximaal 20&nbsp;MB.</p>
+            <label class="filedrop" id="fileDrop" for="file">
+              <span class="filedrop__icon">📄</span>
+              <span class="filedrop__text" id="fileDropText">Klik om een bestand te kiezen
+                of sleep het hierheen</span>
+              <input type="file" id="file" name="file"
+                     accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                     required />
+            </label>
+            <p class="field__error" data-error-for="file"></p>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span class="submit-btn__label">Verstuur mijn bijdrage</span>
+            <span class="submit-btn__spinner" aria-hidden="true"></span>
+          </button>
+
+          <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Gemaakt met 💚 voor Jonathan &amp; Iris</p>
+    </footer>
+  </div>
+
+  <!-- Overlay tijdens het uploaden -->
+  <div class="upload-overlay" id="uploadOverlay" hidden>
+    <div class="upload-overlay__box">
+      <div class="upload-overlay__spinner"></div>
+      <p class="upload-overlay__title">Je bijdrage wordt geüpload…</p>
+      <p class="upload-overlay__sub">Grote bestanden kunnen even duren. Sluit dit venster niet.</p>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

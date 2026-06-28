@@ -1,0 +1,341 @@
+/* =============================================================
+   Huwelijkstijdschrift Jonathan & Iris — stijl
+   Kleurenschema: blush (perzik) / sage (zachtgroen) / forest (donkergroen)
+   ============================================================= */
+:root {
+  --blush:      #f4ddcd;   /* perzik — hero-achtergrond */
+  --blush-soft: #fbeee6;   /* lichtere perzik */
+  --sage:       #c2d2ba;   /* zachtgroen — paginasectie */
+  --sage-soft:  #dde7d6;   /* lichtere sage */
+  --forest:     #21401c;   /* donkergroen — tekst & knoppen */
+  --forest-700: #2c5325;
+  --forest-600: #356129;
+  --cream:      #fdfaf6;   /* kaartachtergrond */
+  --ink:        #243b20;   /* bodytekst (donkergroen) */
+  --muted:      #6f7d68;
+  --error:      #b1453b;
+  --success:    #2f6d43;
+  --white:      #ffffff;
+  --shadow:     0 20px 44px -24px rgba(33, 64, 28, 0.42);
+  --radius:     18px;
+  --font-head:  "Playfair Display", Georgia, serif;
+  --font-body:  "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+/* Zorg dat het 'hidden'-attribuut altijd wint van display-regels hieronder */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--sage);
+  -webkit-font-smoothing: antialiased;
+}
+
+.page { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ---------- Hero ---------- */
+.hero {
+  background: var(--blush);
+  color: var(--forest);
+  text-align: center;
+  padding: 70px 20px 64px;
+  position: relative;
+  overflow: hidden;
+}
+/* zachte sage-golf onderaan, net als de referentie */
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 30px;
+  background: var(--sage);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+.hero__inner { max-width: 660px; margin: 0 auto; position: relative; z-index: 1; }
+.hero__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.36em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: var(--forest-600);
+}
+.hero__title {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: clamp(2.8rem, 8.5vw, 4.6rem);
+  line-height: 1.02;
+  margin: 0 0 18px;
+  color: var(--forest);
+}
+.hero__subtitle {
+  font-size: 1.08rem;
+  line-height: 1.6;
+  margin: 0 auto 26px;
+  max-width: 540px;
+  color: var(--forest-700);
+}
+.deadline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--forest);
+  border: 1px solid var(--forest);
+  color: var(--blush-soft);
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.deadline-badge__icon { font-size: 1.05rem; }
+
+/* ---------- Layout ---------- */
+.container {
+  width: 100%;
+  max-width: 720px;
+  margin: -8px auto 0;
+  padding: 30px 18px 52px;
+  flex: 1;
+}
+
+/* ---------- Kaart ---------- */
+.form-card, .closed-card {
+  background: var(--cream);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--sage-soft);
+  padding: clamp(22px, 4vw, 42px);
+}
+
+.closed-card { text-align: center; }
+.closed-card__emoji { font-size: 3rem; }
+.closed-card h2 {
+  font-family: var(--font-head);
+  font-size: 2.1rem;
+  margin: 8px 0 12px;
+  color: var(--forest);
+}
+.closed-card p { color: var(--muted); line-height: 1.6; max-width: 440px; margin: 0 auto; }
+
+/* ---------- Velden ---------- */
+.field { margin-bottom: 26px; }
+.field > label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 1.04rem;
+  color: var(--forest);
+}
+.req { color: var(--error); }
+.field__hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.field input[type="text"],
+.field input[type="email"] {
+  width: 100%;
+  padding: 13px 15px;
+  border: 1.5px solid var(--sage-soft);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--blush-soft);
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.field input::placeholder { color: #a89a8e; }
+.field input:focus {
+  outline: none;
+  border-color: var(--forest-600);
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(33, 64, 28, 0.14);
+}
+.field__error {
+  color: var(--error);
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin: 7px 0 0;
+}
+.field.invalid input,
+.field.invalid .filedrop { border-color: var(--error); }
+
+/* ---------- Categorie-kaarten ---------- */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.category-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border: 1.5px solid var(--sage-soft);
+  border-radius: 12px;
+  background: var(--blush-soft);
+  cursor: pointer;
+  font-size: 0.92rem;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--ink);
+  transition: border-color .15s, background .15s, transform .08s;
+}
+.category-card:hover { border-color: var(--sage); background: var(--sage-soft); }
+.category-card:active { transform: scale(0.99); }
+.category-card input { position: absolute; opacity: 0; pointer-events: none; }
+.category-card__dot {
+  flex: 0 0 auto;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--sage);
+  display: grid;
+  place-items: center;
+  transition: border-color .15s;
+}
+.category-card__dot::after {
+  content: "";
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--forest);
+  transform: scale(0);
+  transition: transform .15s;
+}
+.category-card.selected {
+  border-color: var(--forest-600);
+  background: var(--sage-soft);
+  box-shadow: 0 0 0 3px rgba(33, 64, 28, 0.12);
+}
+.category-card.selected .category-card__dot { border-color: var(--forest-600); }
+.category-card.selected .category-card__dot::after { transform: scale(1); }
+.category-card__num {
+  flex: 0 0 auto;
+  font-family: var(--font-head);
+  font-weight: 700;
+  color: var(--forest-600);
+  font-size: 1.05rem;
+  min-width: 18px;
+}
+
+/* ---------- Bestand uploaden ---------- */
+.filedrop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 26px 18px;
+  border: 2px dashed var(--sage);
+  border-radius: 14px;
+  background: var(--blush-soft);
+  cursor: pointer;
+  color: var(--muted);
+  transition: border-color .15s, background .15s;
+}
+.filedrop:hover, .filedrop.dragover {
+  border-color: var(--forest-600);
+  background: var(--sage-soft);
+}
+.filedrop__icon { font-size: 1.8rem; }
+.filedrop__text { font-weight: 600; font-size: 0.95rem; }
+.filedrop.has-file { border-style: solid; border-color: var(--forest-600); color: var(--forest); }
+.filedrop input[type="file"] { display: none; }
+
+/* ---------- Submit ---------- */
+.submit-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--forest);
+  color: var(--blush-soft);
+  font-family: inherit;
+  font-size: 1.06rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 14px 26px -16px rgba(33, 64, 28, 0.9);
+  transition: transform .08s, box-shadow .15s, background .15s, opacity .15s;
+}
+.submit-btn:hover { background: var(--forest-700); box-shadow: 0 18px 30px -16px rgba(33, 64, 28, 0.9); }
+.submit-btn:active { transform: translateY(1px); }
+.submit-btn:disabled { opacity: 0.75; cursor: progress; }
+.submit-btn__spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(251, 238, 230, 0.45);
+  border-top-color: var(--blush-soft);
+  border-radius: 50%;
+  display: none;
+  animation: spin .8s linear infinite;
+}
+.submit-btn.loading .submit-btn__spinner { display: inline-block; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Statusmelding ---------- */
+.form-status {
+  margin-top: 18px;
+  padding: 0;
+  border-radius: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.form-status.show { padding: 14px 16px; }
+.form-status.success { background: #e4f3e9; color: var(--success); border: 1px solid #bfe0cb; }
+.form-status.error { background: #fbe7e4; color: var(--error); border: 1px solid #f1c5bf; }
+
+/* ---------- Footer ---------- */
+.footer {
+  text-align: center;
+  padding: 30px 16px 38px;
+  color: var(--forest-700);
+  font-size: 0.92rem;
+  background: var(--sage);
+}
+
+/* ---------- Upload-overlay ---------- */
+.upload-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(33, 64, 28, 0.5);
+  backdrop-filter: blur(3px);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 20px;
+}
+.upload-overlay__box {
+  background: var(--cream);
+  border-radius: 20px;
+  padding: 36px 30px;
+  text-align: center;
+  max-width: 360px;
+  box-shadow: var(--shadow);
+}
+.upload-overlay__spinner {
+  width: 54px; height: 54px;
+  margin: 0 auto 18px;
+  border: 5px solid var(--sage-soft);
+  border-top-color: var(--forest);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+.upload-overlay__title { font-weight: 700; font-size: 1.12rem; margin: 0 0 6px; color: var(--forest); }
+.upload-overlay__sub { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 520px) {
+  .hero { padding: 52px 18px 50px; }
+  .category-grid { grid-template-columns: 1fr; }
+  .container { padding: 26px 14px 42px; }
+}
