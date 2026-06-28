@@ -61,7 +61,9 @@ Deno.serve(async (req) => {
     // ---- 1. Upload naar Google Drive ----
     const bytes = new Uint8Array(await file.arrayBuffer());
     const driveFileId = await uploadToDrive({
-      serviceAccountJson: requireEnv("GOOGLE_SERVICE_ACCOUNT_JSON"),
+      clientId: requireEnv("GOOGLE_OAUTH_CLIENT_ID"),
+      clientSecret: requireEnv("GOOGLE_OAUTH_CLIENT_SECRET"),
+      refreshToken: requireEnv("GOOGLE_OAUTH_REFRESH_TOKEN"),
       folderId: requireEnv("GOOGLE_DRIVE_FOLDER_ID"),
       filename,
       mimeType,

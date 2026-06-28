@@ -1,74 +1,27 @@
 // =============================================================
-//  Google Drive upload via een Service Account (zonder externe libs).
-//  We maken zelf een JWT, wisselen die in voor een access token en
-//  uploaden het bestand met de Drive API v3 (multipart upload).
+//  Google Drive upload via OAuth (refresh token van een gewoon
+//  Google-account). De bestanden zijn eigendom van dat account, dus
+//  geen "service account storage quota"-probleem. Geen externe libs.
 // =============================================================
 
-interface ServiceAccount {
-  client_email: string;
-  private_key: string;
-}
-
-function base64url(input: ArrayBuffer | string): string {
-  let bytes: Uint8Array;
-  if (typeof input === "string") {
-    bytes = new TextEncoder().encode(input);
-  } else {
-    bytes = new Uint8Array(input);
-  }
-  let bin = "";
-  for (const b of bytes) bin += String.fromCharCode(b);
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function pemToArrayBuffer(pem: string): ArrayBuffer {
-  const body = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/, "")
-    .replace(/-----END PRIVATE KEY-----/, "")
-    .replace(/\s+/g, "");
-  const bin = atob(body);
-  const buf = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-  return buf.buffer;
-}
-
-async function getAccessToken(sa: ServiceAccount): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: "RS256", typ: "JWT" };
-  const claim = {
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/drive.file",
-    aud: "https://oauth2.googleapis.com/token",
-    iat: now,
-    exp: now + 3600,
-  };
-  const unsigned = `${base64url(JSON.stringify(header))}.${base64url(JSON.stringify(claim))}`;
-
-  const key = await crypto.subtle.importKey(
-    "pkcs8",
-    pemToArrayBuffer(sa.private_key),
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign(
-    "RSASSA-PKCS1-v1_5",
-    key,
-    new TextEncoder().encode(unsigned),
-  );
-  const jwt = `${unsigned}.${base64url(signature)}`;
-
+async function getAccessToken(
+  clientId: string,
+  clientSecret: string,
+  refreshToken: string,
+): Promise<string> {
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: jwt,
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
     }),
   });
   const data = await res.json();
   if (!res.ok || !data.access_token) {
-    throw new Error("Google auth mislukt: " + JSON.stringify(data));
+    throw new Error("Google OAuth (refresh) mislukt: " + JSON.stringify(data));
   }
   return data.access_token as string;
 }
@@ -78,17 +31,19 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
  * Retourneert het Drive file-id.
  */
 export async function uploadToDrive(opts: {
-  serviceAccountJson: string;
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
   folderId: string;
   filename: string;
   mimeType: string;
   data: Uint8Array;
 }): Promise<string> {
-  const sa = JSON.parse(opts.serviceAccountJson) as ServiceAccount;
-  // private_key kan met letterlijke \n in de env-variabele staan
-  sa.private_key = sa.private_key.replace(/\\n/g, "\n");
-
-  const token = await getAccessToken(sa);
+  const token = await getAccessToken(
+    opts.clientId,
+    opts.clientSecret,
+    opts.refreshToken,
+  );
 
   const boundary = "boundary_ji_" + crypto.randomUUID();
   const metadata = { name: opts.filename, parents: [opts.folderId] };
