@@ -237,8 +237,8 @@ Snel testen zonder browser:
 curl -X POST http://localhost:54321/functions/v1/submit-entry \
   -H "Authorization: Bearer <anon-key>" \
   -F "name=Anna de Vries" \
-  -F "email=anna@example.com" \
   -F "category=Moppentrommel" \
+  -F "category=Date-ideeën" \
   -F "file=@/pad/naar/test.docx"
 ```
 

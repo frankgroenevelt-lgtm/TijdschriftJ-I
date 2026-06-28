@@ -193,19 +193,20 @@ html, body {
 .category-card input { position: absolute; opacity: 0; pointer-events: none; }
 .category-card__dot {
   flex: 0 0 auto;
-  width: 18px; height: 18px;
-  border-radius: 50%;
+  width: 19px; height: 19px;
+  border-radius: 5px;
   border: 2px solid var(--sage);
   display: grid;
   place-items: center;
-  transition: border-color .15s;
+  transition: border-color .15s, background .15s;
 }
 .category-card__dot::after {
   content: "";
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  background: var(--forest);
-  transform: scale(0);
+  width: 5px; height: 9px;
+  margin-top: -2px;
+  border: solid var(--white);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
   transition: transform .15s;
 }
 .category-card.selected {
@@ -213,8 +214,11 @@ html, body {
   background: var(--sage-soft);
   box-shadow: 0 0 0 3px rgba(33, 64, 28, 0.12);
 }
-.category-card.selected .category-card__dot { border-color: var(--forest-600); }
-.category-card.selected .category-card__dot::after { transform: scale(1); }
+.category-card.selected .category-card__dot {
+  border-color: var(--forest-600);
+  background: var(--forest-600);
+}
+.category-card.selected .category-card__dot::after { transform: rotate(45deg) scale(1); }
 .category-card__num {
   flex: 0 0 auto;
   font-family: var(--font-head);

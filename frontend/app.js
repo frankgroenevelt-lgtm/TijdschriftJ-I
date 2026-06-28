@@ -14,7 +14,6 @@
     deadlineText: document.getElementById("deadlineText"),
     form: document.getElementById("entryForm"),
     name: document.getElementById("name"),
-    email: document.getElementById("email"),
     categoryGrid: document.getElementById("categoryGrid"),
     file: document.getElementById("file"),
     fileDrop: document.getElementById("fileDrop"),
@@ -24,7 +23,7 @@
     overlay: document.getElementById("uploadOverlay"),
   };
 
-  let selectedCategory = "";
+  const selectedCategories = new Set();
 
   /* ---------- Deadline ---------- */
   function deadlineLabel() {
@@ -42,33 +41,31 @@
   /* ---------- Categorie-kaarten opbouwen ---------- */
   function buildCategories() {
     categories.forEach((label, i) => {
-      const card = document.createElement("label");
+      const card = document.createElement("div");
       card.className = "category-card";
-      card.setAttribute("role", "radio");
+      card.setAttribute("role", "checkbox");
       card.setAttribute("aria-checked", "false");
       card.tabIndex = 0;
       card.innerHTML =
         '<span class="category-card__num">' + (i + 1) + "</span>" +
         '<span class="category-card__dot"></span>' +
-        '<input type="radio" name="category" value="">' +
         "<span>" + escapeHtml(label) + "</span>";
-      const input = card.querySelector("input");
-      input.value = label;
 
-      function choose() {
-        selectedCategory = label;
-        document.querySelectorAll(".category-card").forEach((c) => {
-          c.classList.remove("selected");
-          c.setAttribute("aria-checked", "false");
-        });
-        card.classList.add("selected");
-        card.setAttribute("aria-checked", "true");
-        input.checked = true;
+      function toggle() {
+        if (selectedCategories.has(label)) {
+          selectedCategories.delete(label);
+          card.classList.remove("selected");
+          card.setAttribute("aria-checked", "false");
+        } else {
+          selectedCategories.add(label);
+          card.classList.add("selected");
+          card.setAttribute("aria-checked", "true");
+        }
         clearError("category");
       }
-      card.addEventListener("click", choose);
+      card.addEventListener("click", toggle);
       card.addEventListener("keydown", (e) => {
-        if (e.key === " " || e.key === "Enter") { e.preventDefault(); choose(); }
+        if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); }
       });
       els.categoryGrid.appendChild(card);
     });
@@ -117,13 +114,9 @@
 
     if (!els.name.value.trim()) { setError("name", "Vul je naam in."); ok = false; }
 
-    const email = els.email.value.trim();
-    if (!email) { setError("email", "Vul je e-mailadres in."); ok = false; }
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("email", "Dit is geen geldig e-mailadres."); ok = false;
+    if (selectedCategories.size === 0) {
+      setError("category", "Kies minstens één rubriek."); ok = false;
     }
-
-    if (!selectedCategory) { setError("category", "Kies een categorie."); ok = false; }
 
     const file = els.file.files[0];
     if (!file) { setError("file", "Kies een Word-bestand om te uploaden."); ok = false; }
@@ -152,8 +145,7 @@
 
     const fd = new FormData();
     fd.append("name", els.name.value.trim());
-    fd.append("email", els.email.value.trim());
-    fd.append("category", selectedCategory);
+    selectedCategories.forEach((cat) => fd.append("category", cat));
     fd.append("file", els.file.files[0]);
 
     setLoading(true);
@@ -170,7 +162,7 @@
       }
 
       els.form.reset();
-      selectedCategory = "";
+      selectedCategories.clear();
       document.querySelectorAll(".category-card").forEach((c) => {
         c.classList.remove("selected");
         c.setAttribute("aria-checked", "false");
@@ -237,7 +229,6 @@
     wireFileInput();
     els.form.addEventListener("submit", handleSubmit);
     els.name.addEventListener("input", () => clearError("name"));
-    els.email.addEventListener("input", () => clearError("email"));
   }
 
   init();

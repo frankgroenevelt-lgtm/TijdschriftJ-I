@@ -27,15 +27,14 @@ Deno.serve(async (req) => {
     // ---- Formulier uitlezen ----
     const form = await req.formData();
     const name = String(form.get("name") || "").trim();
-    const email = String(form.get("email") || "").trim();
-    const category = String(form.get("category") || "").trim();
+    const categories = form.getAll("category")
+      .map((c) => String(c).trim())
+      .filter((c) => c.length > 0);
+    const category = categories.join(", ");
     const file = form.get("file");
 
-    if (!name || !email || !category) {
-      return json({ error: "Naam, e-mail en categorie zijn verplicht." }, 400);
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return json({ error: "Ongeldig e-mailadres." }, 400);
+    if (!name || categories.length === 0) {
+      return json({ error: "Naam en minstens één rubriek zijn verplicht." }, 400);
     }
     if (!(file instanceof File)) {
       return json({ error: "Er is geen bestand meegestuurd." }, 400);
@@ -49,10 +48,11 @@ Deno.serve(async (req) => {
       return json({ error: "Het bestand is groter dan 20 MB." }, 400);
     }
 
-    // ---- Bestandsnaam opbouwen: [Naam]_[Categorie]_[timestamp].ext ----
+    // ---- Bestandsnaam opbouwen: [Naam]_[Rubriek(en)]_[timestamp].ext ----
     const ext = lower.endsWith(".docx") ? "docx" : "doc";
     const stamp = timestamp();
-    const filename = `${slug(name)}_${slug(category)}_${stamp}.${ext}`;
+    const catForFile = categories.map((c) => slug(c)).join("-").slice(0, 80);
+    const filename = `${slug(name)}_${catForFile}_${stamp}.${ext}`;
     const mimeType = file.type ||
       (ext === "docx"
         ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     );
     const { data: row, error: dbError } = await supabase
       .from("submissions")
-      .insert({ name, email, category, filename, drive_file_id: driveFileId })
+      .insert({ name, category, filename, drive_file_id: driveFileId })
       .select()
       .single();
 
@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
 
     // ---- 3. Bevestigingsmail via Resend ----
     try {
-      await sendEmail({ name, email, category, filename, createdAt: row.created_at });
+      await sendEmail({ name, category, filename, createdAt: row.created_at });
     } catch (mailErr) {
       // Mail-fout mag de inzending niet laten mislukken; gewoon loggen.
       console.error("Mail-fout (inzending wel opgeslagen):", mailErr);
@@ -129,7 +129,6 @@ function slug(s: string): string {
 
 async function sendEmail(p: {
   name: string;
-  email: string;
   category: string;
   filename: string;
   createdAt: string;
@@ -146,19 +145,18 @@ async function sendEmail(p: {
 
   const subject = `Nieuwe inzending tijdschrift Jonathan & Iris – ${p.name} – ${p.category}`;
   const html = `
-    <div style="font-family:Arial,sans-serif;color:#213334;max-width:560px;">
-      <h2 style="color:#1b6b6b;">Nieuwe inzending 🎉</h2>
+    <div style="font-family:Arial,sans-serif;color:#243b20;max-width:560px;">
+      <h2 style="color:#21401c;">Nieuwe inzending 🎉</h2>
       <p>Er is een nieuwe bijdrage binnengekomen voor het huwelijkstijdschrift van
          Jonathan &amp; Iris.</p>
       <table style="border-collapse:collapse;width:100%;">
         ${rowHtml("Naam indiener", p.name)}
-        ${rowHtml("E-mailadres", p.email)}
-        ${rowHtml("Categorie", p.category)}
+        ${rowHtml("Rubriek(en)", p.category)}
         ${rowHtml("Tijdstip", tijdstip)}
         ${rowHtml("Bestandsnaam", p.filename)}
       </table>
-      <p style="color:#5d7273;font-size:13px;margin-top:18px;">
-        Het bestand is opgeslagen in de gedeelde Google Drive-map.</p>
+      <p style="color:#6f7d68;font-size:13px;margin-top:18px;">
+        Het bestand is opgeslagen in de Google Drive-map.</p>
     </div>`;
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -167,7 +165,7 @@ async function sendEmail(p: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from, to: [to], subject, html, reply_to: p.email }),
+    body: JSON.stringify({ from, to: [to], subject, html }),
   });
   if (!res.ok) {
     throw new Error("Resend-fout: " + (await res.text()));
@@ -176,8 +174,8 @@ async function sendEmail(p: {
 
 function rowHtml(label: string, value: string): string {
   return `<tr>
-    <td style="padding:8px 10px;border:1px solid #d8f0ee;background:#eef8f7;font-weight:bold;">${label}</td>
-    <td style="padding:8px 10px;border:1px solid #d8f0ee;">${escapeHtml(value)}</td>
+    <td style="padding:8px 10px;border:1px solid #dde7d6;background:#eef3ea;font-weight:bold;">${label}</td>
+    <td style="padding:8px 10px;border:1px solid #dde7d6;">${escapeHtml(value)}</td>
   </tr>`;
 }
 
