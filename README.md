@@ -58,38 +58,45 @@ huwelijkstijdschrift/
 5. Ga naar **APIs en services → Bibliotheek**, zoek op **Google Drive API** en klik
    **Inschakelen**.
 
-## 2. Service Account aanmaken + credentials downloaden
+## 2. OAuth-client aanmaken + refresh token ophalen
 
-1. Ga naar **APIs en services → Inloggegevens** (Credentials).
-2. Klik **Inloggegevens maken → Serviceaccount**.
-3. Geef een naam (bijv. `tijdschrift-uploader`) en klik **Klaar**.
-4. Open het zojuist gemaakte serviceaccount → tabblad **Sleutels** (Keys).
-5. **Sleutel toevoegen → Nieuwe sleutel maken → JSON → Maken**.
-6. Er wordt een `credentials.json` gedownload. **Bewaar dit veilig** en commit het nooit.
-7. Noteer het **e-mailadres** van het serviceaccount (eindigt op
-   `...@<project>.iam.gserviceaccount.com`). Dat heb je in stap 3 nodig.
+> Waarom OAuth en geen service account? Een service account heeft zelf **geen
+> opslagquota** en kan dus geen bestanden bewaren in een persoonlijke ("Mijn Drive") map
+> (fout: *"Service Accounts do not have storage quota"*). Door OAuth met je **eigen**
+> Google-account te gebruiken, zijn de geüploade bestanden eigendom van jou en is dat
+> probleem opgelost. De scope `drive.file` is niet-gevoelig, dus dit kan zonder Google-
+> verificatie.
 
-## 3. Service Account toegang geven tot de Drive-map
+**2a. OAuth consent screen (Google Auth Platform):**
+1. Google Cloud Console → **Google Auth Platform → Branding**: vul App name +
+   support-/developer-e-mail in. Kies bij User Type **External**.
+2. **Audience → Publish app → Confirm** zodat de status **In production** wordt.
+   Dit voorkomt dat de refresh token na 7 dagen verloopt.
+
+**2b. OAuth-client:**
+1. **Clients → Create client → Application type: Web application**.
+2. Voeg bij **Authorized redirect URIs** exact toe:
+   `https://developers.google.com/oauthplayground`
+3. **Create** → noteer de **Client ID** en **Client secret**.
+
+**2c. Refresh token ophalen via de [OAuth Playground](https://developers.google.com/oauthplayground):**
+1. Tandwiel ⚙️ → **Use your own OAuth credentials** → plak Client ID + Client secret.
+2. Bij "Input your own scopes": `https://www.googleapis.com/auth/drive.file` →
+   **Authorize APIs** → log in met het account dat eigenaar is van de Drive-map.
+3. **Exchange authorization code for tokens** → kopieer de **Refresh token** (`1//…`).
+
+Deze drie waarden (`GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`,
+`GOOGLE_OAUTH_REFRESH_TOKEN`) zet je als secrets — zie sectie 4.
+
+## 3. De Drive-map
 
 De doelmap is:
 `https://drive.google.com/drive/folders/1jY4mEndb-xKQaBATZu1KthhElwdJaudZ`
 (folder-id: `1jY4mEndb-xKQaBATZu1KthhElwdJaudZ`)
 
-1. Open de map in Google Drive.
-2. Klik **Delen** (Share).
-3. Plak het **e-mailadres van het serviceaccount** uit stap 2.
-4. Geef de rol **Bewerker** (Editor) en klik **Verzenden/Delen**.
-
-> 🛑 **Belangrijk over opslagquota.** Een serviceaccount heeft zelf **geen** opslagquota.
-> Als de map in een **persoonlijke** Google Drive ("Mijn Drive") staat, kan een upload
-> mislukken met de fout *"Service Accounts do not have storage quota"* — het bestand wordt
-> namelijk eigendom van het serviceaccount.
-> **Aanbevolen oplossing:** maak een **Gedeelde Drive** (Shared Drive, beschikbaar in
-> Google Workspace), zet de map daarin en voeg het serviceaccount als lid toe. Bestanden in
-> een Gedeelde Drive zijn eigendom van de Drive, niet van het account, dus het quotaprobleem
-> verdwijnt. De code stuurt al `supportsAllDrives=true` mee.
-> Alternatief zonder Workspace: gebruik OAuth met een refresh-token van een persoonlijk
-> account in plaats van een serviceaccount (vereist code-aanpassing).
+Zorg dat deze map in de **Drive van hetzelfde account** staat waarmee je in stap 2c hebt
+ingelogd. Er hoeft niets gedeeld te worden — de uploads zijn immers eigendom van dat
+account. De ceremoniemeesters kunnen rechtstreeks in deze map kijken.
 
 ## 4. Environment variables
 
@@ -101,7 +108,9 @@ Zie [`.env.example`](.env.example). Alle waarden horen als **Supabase Secrets** 
 | `SUPABASE_URL` | Supabase → Settings → API |
 | `SUPABASE_ANON_KEY` | Supabase → Settings → API (publiek, mag in frontend) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API (**geheim**, alleen server) |
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | Volledige inhoud van `credentials.json` als één regel |
+| `GOOGLE_OAUTH_CLIENT_ID` | OAuth-client uit sectie 2b |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | OAuth-client secret uit sectie 2b (**geheim**) |
+| `GOOGLE_OAUTH_REFRESH_TOKEN` | Refresh token uit sectie 2c (**geheim**) |
 | `GOOGLE_DRIVE_FOLDER_ID` | `1jY4mEndb-xKQaBATZu1KthhElwdJaudZ` |
 | `RESEND_API_KEY` | resend.com → API Keys |
 | `RESEND_FROM` | Afzender, bijv. `onboarding@resend.dev` of eigen domein |
@@ -121,9 +130,9 @@ supabase secrets set --env-file ./.env
 supabase secrets set RESEND_API_KEY="re_..."
 supabase secrets set GOOGLE_DRIVE_FOLDER_ID="1jY4mEndb-xKQaBATZu1KthhElwdJaudZ"
 supabase secrets set NOTIFICATION_EMAIL="frankgroenevelt@gmail.com"
-
-# Het service-account JSON als één regel (let op de aanhalingstekens):
-supabase secrets set GOOGLE_SERVICE_ACCOUNT_JSON="$(cat credentials.json | tr -d '\n')"
+supabase secrets set GOOGLE_OAUTH_CLIENT_ID="...apps.googleusercontent.com"
+supabase secrets set GOOGLE_OAUTH_CLIENT_SECRET="GOCSPX-..."
+supabase secrets set GOOGLE_OAUTH_REFRESH_TOKEN="1//..."
 ```
 
 > `SUPABASE_URL`, `SUPABASE_ANON_KEY` en `SUPABASE_SERVICE_ROLE_KEY` worden door Supabase
@@ -245,10 +254,13 @@ curl -X POST http://localhost:54321/functions/v1/submit-entry \
 
 ## 9. Belangrijke aandachtspunten
 
-- **Secrets nooit in git.** `.gitignore` sluit `.env` en `credentials.json` al uit.
-- **Service-role key** staat uitsluitend in Supabase Secrets, nooit in de frontend.
+- **Secrets nooit in git.** `.gitignore` sluit `.env` (en oude `credentials.json`) al uit.
+- **Service-role key** en de **OAuth client secret / refresh token** staan uitsluitend in
+  Supabase Secrets, nooit in de frontend of in git.
 - **Deadline** staat op twee plekken (frontend + Edge Function) — houd ze gelijk.
-- **Drive-quota** bij persoonlijke Drive: gebruik bij voorkeur een Gedeelde Drive (sectie 3).
+- **OAuth-app gepubliceerd** ("In production") houden, anders verloopt de refresh token na
+  7 dagen. Raakt de token toch ongeldig, haal dan een nieuwe op via de OAuth Playground en
+  werk `GOOGLE_OAUTH_REFRESH_TOKEN` bij.
 - **Ceremoniemeesters** bekijken de inzendingen rechtstreeks in de Google Drive-map.
 - **Max bestandsgrootte** is 20 MB (frontend + backend).
 
