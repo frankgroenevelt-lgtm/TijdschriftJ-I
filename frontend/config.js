@@ -4,10 +4,10 @@
 // Te vinden in je Supabase project: Settings → API
 window.APP_CONFIG = {
   // Bijv. "https://abcdefgh.supabase.co"
-  SUPABASE_URL: "https://JOUW-PROJECT.supabase.co",
+  SUPABASE_URL: "https://toiabwxcznmwwwefzojn.supabase.co",
 
   // De publieke "anon" key (mag in de frontend staan, is read-only beperkt)
-  SUPABASE_ANON_KEY: "JOUW_SUPABASE_ANON_KEY",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvaWFid3hjem5td3d3ZWZ6b2puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDA4MDYsImV4cCI6MjA5ODIxNjgwNn0.Pzs6QnAvZVzZQY6sECS0mbmpFmS3FngzlN3DrN64qf4",
 
   // Deadline voor inzendingen.  LET OP: het verzoek noemde "16 juli".
   // Standaard staat hier 16 juli 2026 zodat de site nu werkt; het
