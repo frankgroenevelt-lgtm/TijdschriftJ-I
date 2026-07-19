@@ -9,11 +9,10 @@ window.APP_CONFIG = {
   // De publieke "anon" key (mag in de frontend staan, is read-only beperkt)
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvaWFid3hjem5td3d3ZWZ6b2puIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2NDA4MDYsImV4cCI6MjA5ODIxNjgwNn0.Pzs6QnAvZVzZQY6sECS0mbmpFmS3FngzlN3DrN64qf4",
 
-  // Deadline voor inzendingen.  LET OP: het verzoek noemde "16 juli".
-  // Standaard staat hier 16 juli 2026 zodat de site nu werkt; het
-  // oorspronkelijke verzoek schreef 2025. Pas het jaar aan indien nodig.
-  // Formaat: YYYY-MM-DDTHH:mm:ss  (lokale tijd, einde van de dag)
-  DEADLINE: "2026-07-16T23:59:59",
+  // Deadline voor inzendingen. LEEG = geen einddatum, formulier blijft altijd open.
+  // Wil je later toch een deadline? Vul dan een datum in, bijv.
+  // "2026-07-16T23:59:59" (formaat YYYY-MM-DDTHH:mm:ss, lokale tijd).
+  DEADLINE: "",
 };
 
 // =============================================================

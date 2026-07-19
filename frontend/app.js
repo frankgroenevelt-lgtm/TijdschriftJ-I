@@ -35,9 +35,13 @@
     return d.toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
   }
 
+  function hasDeadline() {
+    return !!cfg.DEADLINE && !isNaN(new Date(cfg.DEADLINE));
+  }
+
   function isClosed() {
+    if (!hasDeadline()) return false;
     const d = new Date(cfg.DEADLINE);
-    if (isNaN(d)) return false;
     return new Date() > d;
   }
 
@@ -245,7 +249,9 @@
 
   /* ---------- Init ---------- */
   function init() {
-    els.deadlineText.textContent = "Lever je bijdrage in vóór " + deadlineLabel();
+    els.deadlineText.textContent = hasDeadline()
+      ? "Lever je bijdrage in vóór " + deadlineLabel()
+      : "Lever je bijdrage in wanneer je wilt 💚";
 
     if (isClosed()) {
       els.formCard.hidden = true;

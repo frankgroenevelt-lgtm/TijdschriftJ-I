@@ -10,9 +10,10 @@ import { uploadToDrive } from "../_shared/googleDrive.ts";
 const MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 
 // Deadline: na deze datum worden inzendingen geweigerd.
-// LET OP: houd dit gelijk aan frontend/config.js. Standaard 16 juli 2026
-// (oorspronkelijk verzoek schreef 2025); pas het jaar aan indien nodig.
-const DEADLINE = new Date("2026-07-16T23:59:59+02:00");
+// null = geen einddatum, het formulier blijft altijd open.
+// Wil je later toch een deadline? Zet bijv. new Date("2026-07-16T23:59:59+02:00")
+// en houd dit gelijk aan frontend/config.js.
+const DEADLINE: Date | null = null;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -20,7 +21,7 @@ Deno.serve(async (req) => {
 
   try {
     // ---- Deadline-check (server-side) ----
-    if (new Date() > DEADLINE) {
+    if (DEADLINE && new Date() > DEADLINE) {
       return json({ error: "De inzendtermijn is gesloten." }, 403);
     }
 
